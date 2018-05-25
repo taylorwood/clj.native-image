@@ -1,0 +1,7 @@
+/target
+pom.xml
+pom.xml.asc
+*.log
+*.lein-*
+project.clj
+*.iml
