@@ -25,7 +25,7 @@ In your `deps.edn` specify an alias with a dependency on `clj.native-image`:
            {:extra-deps
             {clj.native-image
              {:git/url "https://github.com/taylorwood/clj.native-image.git"
-              :sha "226228dd9f737a73d07684d2425ff049e14eeef0"}}}}
+              :sha "dc6d6e97d0f2cbaaab014531e728edb72e89171f"}}}}
  :jvm-opts ["-Dclojure.compiler.direct-linking=true"]}
 ```
 
