@@ -28,8 +28,9 @@
   (println (format "Building native image '%s' with classpath '%s'" main cp))
   (let [{:keys [exit out err]}
         (exec-native-image nat-img-path (conj opts "--no-server") cp main)]
-    (some-> err println)
-    (some-> out println)
+    ;; TODO would be nice to stream/"redirect" output here
+    (some-> err not-empty println)
+    (some-> out not-empty println)
     exit))
 
 (defn prep-compile-path []
@@ -37,7 +38,7 @@
     (io/delete-file file))
   (.mkdir (io/file *compile-path*)))
 
-(defn -main [main & [nat-img-path nat-img-opts]]
+(defn -main [main & [nat-img-path & nat-img-opts]]
   (when-not (string? main)
     (binding [*out* *err*] (println "Main namespace required e.g. \"script\" if main file is ./script.clj"))
     (System/exit 1))
