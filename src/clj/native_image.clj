@@ -5,11 +5,11 @@
   (:import (java.io File)))
 
 (defn classpath
-  "Returns the classpath string minus *this* project's path and plus *compile-path*."
+  "Returns the classpath string minus clj.native-image path and plus *compile-path*."
   []
   (as-> (System/getProperty "java.class.path") $
     (cs/split $ (re-pattern (str File/pathSeparatorChar)))
-    (remove #(re-find #"clj\.native\-image" %) $) ;; exclude ourselves
+    (remove #(cs/includes? "clj.native-image" %) $) ;; exclude ourselves
     (cons *compile-path* $) ;; prepend compile path for classes
     (cs/join File/pathSeparatorChar $)))
 
