@@ -17,11 +17,10 @@
   "Executes native-image (bin) with opts, specifying a classpath,
    main/entrypoint class, and destination path."
   [bin opts cp main]
-  (let [all-args (cond-> (vec opts)
+  (let [all-args (cond-> []
                    (seq opts) (into opts)
-                   main       (conj (format "-H:Name=%s" main))
-                   cp         (into ["-cp" cp])
-                   main       (conj main))]
+                   cp (into ["-cp" cp])
+                   main (conj main))]
     (apply sh bin all-args)))
 
 (defn build-native-image [cp main nat-img-path opts]
