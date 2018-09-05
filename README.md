@@ -25,7 +25,7 @@ In your `deps.edn` specify an alias with a dependency on `clj.native-image`:
            {:extra-deps
             {clj.native-image
              {:git/url "https://github.com/taylorwood/clj.native-image.git"
-              :sha "dc6d6e97d0f2cbaaab014531e728edb72e89171f"}}}}
+              :sha "9c742ccac262d0899afeb64db694f7679458d38a"}}}}
  :jvm-opts ["-Dclojure.compiler.direct-linking=true"]}
 ```
 
@@ -60,6 +60,8 @@ You can now execute the native image:
 ➜ ./core
 Hello, World!
 ```
+
+See [this Gist](https://gist.github.com/taylorwood/23d370f70b8b09dbf6d31cd4f27d31ff) for another example.
 
 ## Notes
 
