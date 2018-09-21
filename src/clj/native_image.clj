@@ -1,17 +1,16 @@
 (ns clj.native-image
   (:require [clojure.java.io :as io]
             [clojure.java.shell :refer [sh]]
-            [clojure.string :as cs])
+            [clojure.string :as cs]
+            [clojure.tools.deps.alpha :as deps]
+            [clojure.tools.deps.alpha.reader :refer [slurp-deps]])
   (:import (java.io File)))
 
-(defn classpath
-  "Returns the classpath string minus clj.native-image path and plus *compile-path*."
-  []
-  (as-> (System/getProperty "java.class.path") $
-    (cs/split $ (re-pattern (str File/pathSeparatorChar)))
-    (remove #(cs/includes? "clj.native-image" %) $) ;; exclude ourselves
-    (cons *compile-path* $) ;; prepend compile path for classes
-    (cs/join File/pathSeparatorChar $)))
+(defn deps->classpath
+  "Returns the classpath according to deps.edn, adds *compile-path*."
+  [deps-edn]
+  (let [lib-map (deps/resolve-deps deps-edn nil)]
+    (deps/make-classpath lib-map (:paths deps-edn) {:extra-paths [*compile-path*]})))
 
 (defn exec-native-image
   "Executes native-image (bin) with opts, specifying a classpath,
@@ -27,7 +26,7 @@
   (println (format "Building native image '%s' with classpath '%s'" main cp))
   (let [{:keys [exit out err]}
         (exec-native-image nat-img-path (conj opts "--no-server") cp main)]
-    ;; TODO would be nice to stream/"redirect" output here
+    ;; TODO would be nice to stream output here
     (some-> err not-empty println)
     (some-> out not-empty println)
     exit))
@@ -37,25 +36,29 @@
     (io/delete-file file))
   (.mkdir (io/file *compile-path*)))
 
-(defn -main [main & [nat-img-path & nat-img-opts]]
-  (when-not (string? main)
-    (binding [*out* *err*] (println "Main namespace required e.g. \"script\" if main file is ./script.clj"))
-    (System/exit 1))
+(defn native-image-path []
+  (-> (io/file (System/getenv "GRAALVM_HOME") "bin/native-image")
+      (.getAbsolutePath)))
 
-  (println "Loading" main)
-  (load main)
+(defn -main [main & opts]
+  (let [[nat-img-path & nat-img-opts]
+        (if (some-> (first opts) (io/file) (.exists)) ;; check first arg is file path
+          opts
+          (cons (native-image-path) opts))]
+    (when-not (string? main)
+      (binding [*out* *err*] (println "Main namespace required e.g. \"script\" if main file is ./script.clj"))
+      (System/exit 1))
 
-  (println "Compiling" main)
-  (prep-compile-path)
-  (compile (symbol main))
+    (println "Loading" main)
+    (load (cs/replace main "." File/separator))
 
-  (System/exit
-   (build-native-image
-    (classpath)
-    main
-    (or nat-img-path
-        ;; else try to resolve from env var
-        (-> (System/getenv "GRAALVM_HOME")
-            (io/file "bin/native-image")
-            (.getAbsolutePath)))
-    nat-img-opts)))
+    (println "Compiling" main)
+    (prep-compile-path)
+    (compile (symbol main))
+
+    (System/exit
+      (build-native-image
+       (deps->classpath (slurp-deps "deps.edn"))
+       main
+       nat-img-path
+       nat-img-opts))))

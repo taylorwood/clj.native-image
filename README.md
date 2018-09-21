@@ -4,6 +4,8 @@ Build [GraalVM](https://www.graalvm.org) native images using [Clojure Deps and C
 
 This should be useful for creating lightweight, native CLI executables using Clojure and `deps.edn`.
 
+_This project depends on tools.deps.alpha and should be considered alpha itself._
+
 ## Prerequisites
 
 - [Clojure CLI tools](https://clojure.org/guides/getting_started#_clojure_installer_and_cli_tools)
@@ -22,7 +24,9 @@ Assuming a project structure like this:
 In your `deps.edn` specify an alias with a dependency on `clj.native-image`:
 ```clojure
 {:aliases {:native-image
-           {:extra-deps
+           {:main-opts ["-m clj.native-image core"
+                        "-H:Name=json2edn"]
+            :extra-deps
             {clj.native-image
              {:git/url "https://github.com/taylorwood/clj.native-image.git"
               :sha "9c742ccac262d0899afeb64db694f7679458d38a"}}}}
@@ -37,9 +41,10 @@ Where `core.clj` is a class with `-main` entrypoint, for example:
   (println "Hello, World!"))
 ```
 
-From your project directory, invoke `clojure` with the `native-image` alias, specifying the main namespace (`core` in example above):
+From your project directory, invoke `clojure` with the `native-image` alias, specifying the main namespace
+(`core` in example above):
 ```
-➜ clojure -A:native-image -m clj.native-image core
+➜ clojure -A:native-image
 Loading core
 Compiling core
 Building native image 'core' with classpath 'classes:src:etc.'
@@ -49,10 +54,10 @@ Building native image 'core' with classpath 'classes:src:etc.'
      [total]:  38,970.37 ms
 ```
 Note: Either `GRAALVM_HOME` environment variable must be set, or GraalVM's `native-image` path must be passed as an argument,
-and any [additional arguments](https://www.graalvm.org/docs/reference-manual/aot-compilation/#image-generation-options) will be passed to `native-image`:
+and any [additional arguments](https://www.graalvm.org/docs/reference-manual/aot-compilation/#image-generation-options)
+will be passed to `native-image` e.g.:
 ```
-➜ clojure -A:native-image -m clj.native-image core \
-    $GRAALVM_HOME/bin/native-image --verbose
+➜ clojure -A:native-image --verbose
 ```
 
 You can now execute the native image:
@@ -75,7 +80,8 @@ This project was inspired by [depstar](https://github.com/healthfinch/depstar).
 
 ## Contributing
 
-You'll need Clojure CLI tooling and GraalVM installed to test locally. Just change the source of the `clj.native-image` dependency to a `:local/root` instead of `:git/url`.
+You'll need Clojure CLI tooling and GraalVM installed to test locally.
+Just change the source of the `clj.native-image` dependency to a `:local/root` instead of `:git/url`.
 
 Issues, PRs, and suggestions are welcome!
 
