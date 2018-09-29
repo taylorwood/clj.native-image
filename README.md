@@ -3,6 +3,7 @@
 Build [GraalVM](https://www.graalvm.org) native images using [Clojure Deps and CLI tools](https://clojure.org/guides/deps_and_cli).
 
 This should be useful for creating lightweight, native CLI executables using Clojure and `deps.edn`.
+See [clj.native-cli](https://github.com/taylorwood/clj.native-cli) for a starter project template.
 
 _This project depends on tools.deps.alpha and should be considered alpha itself._
 
@@ -13,7 +14,7 @@ _This project depends on tools.deps.alpha and should be considered alpha itself.
 
 ## Usage
 
-Assuming a project structure like this:
+Assuming a project structure like this (or see [example](https://github.com/taylorwood/lein-native-image/tree/master/examples/jdnsmith)):
 ```
 .
 ├── deps.edn
