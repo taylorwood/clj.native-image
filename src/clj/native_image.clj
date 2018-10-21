@@ -3,14 +3,21 @@
             [clojure.java.shell :refer [sh]]
             [clojure.string :as cs]
             [clojure.tools.deps.alpha :as deps]
-            [clojure.tools.deps.alpha.reader :refer [slurp-deps]])
+            [clojure.tools.deps.alpha.reader :as deps.reader])
   (:import (java.io File)))
 
 (defn deps->classpath
   "Returns the classpath according to deps.edn, adds *compile-path*."
-  [deps-edn]
-  (let [lib-map (deps/resolve-deps deps-edn nil)]
-    (deps/make-classpath lib-map (:paths deps-edn) {:extra-paths [*compile-path*]})))
+  [deps-map]
+  (let [lib-map (deps/resolve-deps deps-map nil)]
+    (deps/make-classpath lib-map (:paths deps-map) {:extra-paths [*compile-path*]})))
+
+(defn merged-deps []
+  "Merges install, user, local deps.edn maps left-to-right."
+  (-> (deps.reader/clojure-env)
+      (:config-files)
+      (concat ["deps.edn"])
+      (deps.reader/read-deps)))
 
 (defn exec-native-image
   "Executes native-image (bin) with opts, specifying a classpath,
@@ -58,7 +65,7 @@
 
     (System/exit
       (build-native-image
-       (deps->classpath (slurp-deps "deps.edn"))
+       (deps->classpath (merged-deps))
        main
        nat-img-path
        nat-img-opts))))
