@@ -47,6 +47,9 @@
   (-> (io/file (System/getenv "GRAALVM_HOME") "bin/native-image")
       (.getAbsolutePath)))
 
+(defn- munge-class-name [class-name]
+  (cs/replace class-name "-" "_"))
+
 (defn -main [main & opts]
   (let [[nat-img-path & nat-img-opts]
         (if (some-> (first opts) (io/file) (.exists)) ;; check first arg is file path
@@ -57,7 +60,9 @@
       (System/exit 1))
 
     (println "Loading" main)
-    (load (cs/replace main "." File/separator))
+    (load (-> main
+              (cs/replace "." File/separator)
+              (munge-class-name)))
 
     (println "Compiling" main)
     (prep-compile-path)
@@ -66,6 +71,6 @@
     (System/exit
       (build-native-image
        (deps->classpath (merged-deps))
-       main
+       (munge-class-name main)
        nat-img-path
        nat-img-opts))))
