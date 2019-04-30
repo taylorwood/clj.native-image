@@ -26,12 +26,12 @@ In your `deps.edn` specify an alias with a dependency on `clj.native-image`:
 ```clojure
 {:aliases {:native-image
            {:main-opts ["-m clj.native-image core"
-                        "-H:Name=json2edn"]
+                        "-H:Name=json2edn"
+                        "-Dclojure.compiler.direct-linking=true"]
             :extra-deps
             {clj.native-image
              {:git/url "https://github.com/taylorwood/clj.native-image.git"
-              :sha "498baa963e914fd817dbf33ea251729efd0c8f95"}}}}
- :jvm-opts ["-Dclojure.compiler.direct-linking=true"]}
+              :sha "498baa963e914fd817dbf33ea251729efd0c8f95"}}}}}
 ```
 
 Where `core.clj` is a class with `-main` entrypoint, for example:
