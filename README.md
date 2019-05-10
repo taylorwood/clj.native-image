@@ -26,8 +26,8 @@ In your `deps.edn` specify an alias with a dependency on `clj.native-image`:
 ```clojure
 {:aliases {:native-image
            {:main-opts ["-m clj.native-image core"
-                        "-H:Name=json2edn"
-                        "-Dclojure.compiler.direct-linking=true"]
+                        "-H:Name=json2edn"]
+            :jvm-opts ["-Dclojure.compiler.direct-linking=true"]
             :extra-deps
             {clj.native-image
              {:git/url "https://github.com/taylorwood/clj.native-image.git"
