@@ -14,7 +14,7 @@ _This project depends on tools.deps.alpha and should be considered alpha itself.
 
 ## Usage
 
-Assuming a project structure like this (or see [example](https://github.com/taylorwood/lein-native-image/tree/master/examples/jdnsmith)):
+Assuming a project structure like this:
 ```
 .
 ├── deps.edn
@@ -68,6 +68,13 @@ Hello, World!
 ```
 
 See [this Gist](https://gist.github.com/taylorwood/23d370f70b8b09dbf6d31cd4f27d31ff) for another example.
+
+### Example Projects
+
+There are example deps.edn projects in the [lein-native-image](https://github.com/taylorwood/lein-native-image) repo:
+- [jdnsmith](https://github.com/taylorwood/lein-native-image/blob/master/examples/http-api)
+- [http-api](https://github.com/taylorwood/lein-native-image/blob/master/examples/http-api)
+
 
 ## Notes
 
