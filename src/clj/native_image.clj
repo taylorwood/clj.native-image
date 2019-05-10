@@ -3,14 +3,17 @@
   (:require [clojure.java.io :as io]
             [clojure.string :as cs]
             [clojure.tools.deps.alpha :as deps]
-            [clojure.tools.deps.alpha.reader :as deps.reader])
-  (:import (java.io File BufferedReader)))
+            [clojure.tools.deps.alpha.reader :as deps.reader]
+            [clojure.tools.namespace.find :refer [find-namespaces-in-dir]])
+  (:import (java.io BufferedReader)))
 
 (defn deps->classpath
   "Returns the classpath according to deps.edn, adds *compile-path*."
   [deps-map]
-  (let [lib-map (deps/resolve-deps deps-map nil)]
-    (deps/make-classpath lib-map (:paths deps-map) {:extra-paths [*compile-path*]})))
+  (deps/make-classpath
+    (deps/resolve-deps deps-map nil)
+    (:paths deps-map)
+    {:extra-paths (conj (:extra-paths deps-map) *compile-path*)}))
 
 (defn merged-deps []
   "Merges install, user, local deps.edn maps left-to-right."
@@ -46,9 +49,10 @@
     (apply sh bin cli-args)))
 
 (defn prep-compile-path []
-  (doseq [file (-> (io/file *compile-path*) (file-seq) (rest) (reverse))]
-    (io/delete-file file))
-  (.mkdir (io/file *compile-path*)))
+  (let [compile-path (io/file *compile-path*)]
+    (doseq [file (-> compile-path (file-seq) (rest) (reverse))]
+      (io/delete-file file))
+    (.mkdir compile-path)))
 
 (defn native-image-bin-path []
   (-> (io/file (System/getenv "GRAALVM_HOME") "bin/native-image")
@@ -66,19 +70,17 @@
       (binding [*out* *err*] (println "Main namespace required e.g. \"script\" if main file is ./script.clj"))
       (System/exit 1))
 
-    (println "Loading" main-ns)
-    (load (-> main-ns
-              (cs/replace "." File/separator)
-              (munge-class-name)))
+    (let [deps-map (merged-deps)
+          namespaces (mapcat (comp find-namespaces-in-dir io/file) (:paths deps-map))]
+      (prep-compile-path)
+      (doseq [ns namespaces]
+        (println "Compiling" ns)
+        (compile (symbol ns)))
 
-    (println "Compiling" main-ns)
-    (prep-compile-path)
-    (compile (symbol main-ns))
-
-    (let [classpath (deps->classpath (merged-deps))
-          class-name (munge-class-name main-ns)]
-      (println (format "Building native image '%s' with classpath '%s'" class-name classpath))
-      (System/exit (exec-native-image nat-img-path nat-img-opts classpath class-name)))))
+      (let [classpath (deps->classpath deps-map)
+            class-name (munge-class-name main-ns)]
+        (println (format "Building native image with classpath '%s'" classpath))
+        (System/exit (exec-native-image nat-img-path nat-img-opts classpath class-name))))))
 
 (defn -main [main-ns & args]
   (try
