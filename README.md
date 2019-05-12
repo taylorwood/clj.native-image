@@ -12,6 +12,17 @@ _This project depends on tools.deps.alpha and should be considered alpha itself.
 - [Clojure CLI tools](https://clojure.org/guides/getting_started#_clojure_installer_and_cli_tools)
 - [GraalVM](https://www.graalvm.org/downloads/)
 
+  **NOTE:** As of GraalVM 19.0.0, `native-image` is no longer included by default:
+  > Native Image was extracted from the base GraalVM distribution. Currently it is available as an early adopter plugin. To install it, run: `gu install native-image`. After this additional step, the `native-image` executable will be in the `bin` directory, as for the previous releases.
+
+  ```
+  ➜ $GRAALVM_HOME/bin/gu install native-image
+  Downloading: Component catalog from www.graalvm.org
+  Processing component archive: Native Image
+  Downloading: Component native-image: Native Image  from github.com
+  Installing new component: Native Image licence files (org.graalvm.native-image, version 19.0.0)
+  ```
+
 ## Usage
 
 Assuming a project structure like this:
@@ -26,6 +37,7 @@ In your `deps.edn` specify an alias with a dependency on `clj.native-image`:
 ```clojure
 {:aliases {:native-image
            {:main-opts ["-m clj.native-image core"
+                        "--initialize-at-build-time"
                         "-H:Name=json2edn"]
             :jvm-opts ["-Dclojure.compiler.direct-linking=true"]
             :extra-deps
@@ -72,13 +84,15 @@ See [this Gist](https://gist.github.com/taylorwood/23d370f70b8b09dbf6d31cd4f27d3
 ### Example Projects
 
 There are example deps.edn projects in the [lein-native-image](https://github.com/taylorwood/lein-native-image) repo:
-- [jdnsmith](https://github.com/taylorwood/lein-native-image/blob/master/examples/http-api)
-- [http-api](https://github.com/taylorwood/lein-native-image/blob/master/examples/http-api)
+- [jdnsmith](https://github.com/taylorwood/lein-native-image/blob/master/examples/http-api) - CLI JSON-to-EDN transformer
+- [http-api](https://github.com/taylorwood/lein-native-image/blob/master/examples/http-api) - simple HTTP API server
+- [clojurl](https://github.com/taylorwood/clojurl) - cURL-like tool using clojure.spec, HTTPS, hiccup
 
-
-## Notes
+## Caveats
 
 The `--no-server` flag is passed to `native-image` by default, to avoid creating orphaned build servers.
+
+Also see [caveats](https://github.com/taylorwood/lein-native-image#caveats) section of lein-native-image.
 
 ## References
 
