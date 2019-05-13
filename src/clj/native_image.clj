@@ -15,10 +15,13 @@
         (cons *compile-path* $) ;; prepend compile path for classes
         (cs/join File/pathSeparatorChar $)))
 
+(def windows? (cs/starts-with? (System/getProperty "os.name") "Windows"))
+
 (defn merged-deps []
   "Merges install, user, local deps.edn maps left-to-right."
-  (-> (deps.reader/clojure-env)
-      (:config-files)
+  (-> (if windows?
+        [] ;; workaround TDEPS-128
+        (:config-files (deps.reader/clojure-env)))
       (concat ["deps.edn"])
       (deps.reader/read-deps)))
 
@@ -42,10 +45,11 @@
    main/entrypoint class, and destination path."
   [bin opts cp main]
   (let [cli-args (cond-> []
-                   (seq opts) (into opts)
-                   cp         (into ["-cp" cp])
-                   main       (conj main)
-                   :always    (conj "--no-server"))]
+                   (seq opts)     (into opts)
+                   cp             (into ["-cp" cp])
+                   main           (conj main)
+                   ;; apparently native-image --no-server isn't currently supported on Windows
+                   (not windows?) (conj "--no-server"))]
     (apply sh bin cli-args)))
 
 (defn prep-compile-path []
@@ -55,7 +59,10 @@
     (.mkdir compile-path)))
 
 (defn native-image-bin-path []
-  (-> (io/file (System/getenv "GRAALVM_HOME") "bin/native-image")
+  (-> (io/file (System/getenv "GRAALVM_HOME")
+               (if windows?
+                 "bin/native-image.cmd"
+                 "bin/native-image"))
       (.getAbsolutePath)))
 
 (defn- munge-class-name [class-name]
