@@ -17,7 +17,10 @@
 
 (defn merged-deps []
   "Merges install, user, local deps.edn maps left-to-right."
-  (-> (deps.reader/clojure-env)
+  (-> (try
+        ;; workaround for TDEPS-128
+        (deps.reader/clojure-env)
+        (catch Throwable _ {:config-files []}))
       (:config-files)
       (concat ["deps.edn"])
       (deps.reader/read-deps)))
