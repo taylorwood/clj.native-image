@@ -7,6 +7,12 @@
             [clojure.tools.namespace.find :refer [find-namespaces-in-dir]])
   (:import (java.io BufferedReader)))
 
+(def windows?
+  (-> (System/getProperty "os.name")
+      cs/trim
+      cs/lower-case
+      (cs/starts-with? "windows")))
+
 (defn deps->classpath
   "Returns the classpath according to deps.edn, adds *compile-path*."
   [deps-map]
@@ -17,10 +23,8 @@
 
 (defn merged-deps []
   "Merges install, user, local deps.edn maps left-to-right."
-  (-> (try
-        ;; workaround for TDEPS-128
-        (deps.reader/clojure-env)
-        (catch Throwable _ {:config-files []}))
+  (-> (if windows? {:config-files []}
+          (deps.reader/clojure-env))
       (:config-files)
       (concat ["deps.edn"])
       (deps.reader/read-deps)))
@@ -48,7 +52,7 @@
                    (seq opts) (into opts)
                    cp         (into ["-cp" cp])
                    main       (conj main)
-                   :always    (conj "--no-server"))]
+                   (not windows?) (conj "--no-server"))]
     (apply sh bin cli-args)))
 
 (defn prep-compile-path []
@@ -58,7 +62,10 @@
     (.mkdir compile-path)))
 
 (defn native-image-bin-path []
-  (-> (io/file (System/getenv "GRAALVM_HOME") "bin/native-image")
+  (-> (io/file (System/getenv "GRAALVM_HOME")
+               (if windows?
+                 "bin/native-image.cmd"
+                 "bin/native-image"))
       (.getAbsolutePath)))
 
 (defn- munge-class-name [class-name]
