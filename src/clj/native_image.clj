@@ -2,18 +2,18 @@
   "Builds GraalVM native images from deps.edn projects."
   (:require [clojure.java.io :as io]
             [clojure.string :as cs]
-            [clojure.tools.deps.alpha :as deps]
             [clojure.tools.deps.alpha.reader :as deps.reader]
             [clojure.tools.namespace.find :refer [find-namespaces-in-dir]])
-  (:import (java.io BufferedReader)))
+  (:import (java.io BufferedReader File)))
 
-(defn deps->classpath
-  "Returns the classpath according to deps.edn, adds *compile-path*."
-  [deps-map]
-  (deps/make-classpath
-    (deps/resolve-deps deps-map nil)
-    (:paths deps-map)
-    {:extra-paths (conj (:extra-paths deps-map) *compile-path*)}))
+(defn native-image-classpath
+  "Returns the current tools.deps classpath string, minus clj.native-image and plus *compile-path*."
+  []
+  (as-> (System/getProperty "java.class.path") $
+        (cs/split $ (re-pattern (str File/pathSeparatorChar)))
+        (remove #(cs/includes? "clj.native-image" %) $) ;; exclude ourselves
+        (cons *compile-path* $) ;; prepend compile path for classes
+        (cs/join File/pathSeparatorChar $)))
 
 (defn merged-deps []
   "Merges install, user, local deps.edn maps left-to-right."
@@ -77,10 +77,12 @@
         (println "Compiling" ns)
         (compile (symbol ns)))
 
-      (let [classpath (deps->classpath deps-map)
-            class-name (munge-class-name main-ns)]
-        (println (format "Building native image with classpath '%s'" classpath))
-        (System/exit (exec-native-image nat-img-path nat-img-opts classpath class-name))))))
+      (System/exit
+       (exec-native-image
+        nat-img-path
+        nat-img-opts
+        (native-image-classpath)
+        (munge-class-name main-ns))))))
 
 (defn -main [main-ns & args]
   (try
