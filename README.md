@@ -38,6 +38,7 @@ In your `deps.edn` specify an alias with a dependency on `clj.native-image`:
 {:aliases {:native-image
            {:main-opts ["-m clj.native-image core"
                         "--initialize-at-build-time"
+                        ;; optional native image name override
                         "-H:Name=core"]
             :jvm-opts ["-Dclojure.compiler.direct-linking=true"]
             :extra-deps
