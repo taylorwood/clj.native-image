@@ -59,11 +59,15 @@
     (.mkdir compile-path)))
 
 (defn native-image-bin-path []
-  (-> (io/file (System/getenv "GRAALVM_HOME")
-               (if windows?
-                 "bin/native-image.cmd"
-                 "bin/native-image"))
-      (.getAbsolutePath)))
+  (let [graal-paths [(str (System/getenv "GRAALVM_HOME") "/bin")
+                     (System/getenv "GRAALVM_HOME")]
+        paths (lazy-cat graal-paths (cs/split (System/getenv "PATH") (re-pattern (File/pathSeparator))))
+        filename (cond-> "native-image" windows? (str ".cmd"))]
+    (first
+     (for [path (distinct paths)
+           :let [file (io/file path filename)]
+           :when (.exists file)]
+       (.getAbsolutePath file)))))
 
 (defn- munge-class-name [class-name]
   (cs/replace class-name "-" "_"))
