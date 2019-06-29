@@ -19,11 +19,7 @@
 
 (defn merged-deps []
   "Merges install, user, local deps.edn maps left-to-right."
-  (-> (if windows?
-        [] ;; workaround TDEPS-128
-        (:config-files (deps.reader/clojure-env)))
-      (concat ["deps.edn"])
-      (deps.reader/read-deps)))
+  (deps.reader/read-deps (deps.reader/default-deps)))
 
 (defn sh
   "Launches a process with optional args, returning exit code.
