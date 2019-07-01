@@ -44,7 +44,7 @@ In your `deps.edn` specify an alias with a dependency on `clj.native-image`:
             :extra-deps
             {clj.native-image
              {:git/url "https://github.com/taylorwood/clj.native-image.git"
-              :sha "567176ddb0f7507c8b0969e0a10f60f848afaf7d"}}}}}
+              :sha "7708e7fd4572459c81f6a6b8e44c96f41cdd92d4"}}}}}
 ```
 
 Where `core.clj` is a class with `-main` entrypoint, for example:
