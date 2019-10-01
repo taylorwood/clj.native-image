@@ -80,7 +80,7 @@
     (let [deps-map (merged-deps)
           namespaces (mapcat (comp find-namespaces-in-dir io/file) (:paths deps-map))]
       (prep-compile-path)
-      (doseq [ns (distinct (conj namespaces main-ns))]
+      (doseq [ns (distinct (cons main-ns namespaces))]
         (println "Compiling" ns)
         (compile (symbol ns)))
 
