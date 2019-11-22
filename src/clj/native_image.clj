@@ -73,6 +73,14 @@
         (if (some-> (first opts) (io/file) (.exists)) ;; check first arg is file path
           opts
           (cons (native-image-bin-path) opts))]
+    (when-not nat-img-path
+      (binding [*out* *err*]
+        (println "Could not find GraalVM's native-image!")
+        (println "Please make sure that the environment variable $GRAALVM_HOME is set")
+        (println "The native-image tool must also be installed ($GRAALVM_HOME/bin/gu install native-image)")
+        (println "If you do not wish to set the GRAALVM_HOME environment variable,")
+        (println "you may pass the path to native-image as the second argument to clj.native-image"))
+      (System/exit 1))
     (when-not (string? main-ns)
       (binding [*out* *err*] (println "Main namespace required e.g. \"script\" if main file is ./script.clj"))
       (System/exit 1))
