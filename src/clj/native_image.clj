@@ -17,8 +17,9 @@
 
 (def windows? (cs/starts-with? (System/getProperty "os.name") "Windows"))
 
-(defn merged-deps []
+(defn merged-deps
   "Merges install, user, local deps.edn maps left-to-right."
+  []
   (deps.reader/read-deps (deps.reader/default-deps)))
 
 (defn sh
