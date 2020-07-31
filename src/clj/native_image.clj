@@ -2,7 +2,7 @@
   "Builds GraalVM native images from deps.edn projects."
   (:require [clojure.java.io :as io]
             [clojure.string :as cs]
-            [clojure.tools.deps.alpha.reader :as deps.reader]
+            [clojure.tools.deps.alpha :as deps]
             [clojure.tools.namespace.find :refer [find-namespaces-in-dir]])
   (:import (java.io BufferedReader File)))
 
@@ -20,7 +20,8 @@
 (defn merged-deps
   "Merges install, user, local deps.edn maps left-to-right."
   []
-  (deps.reader/read-deps (deps.reader/default-deps)))
+  (let [{:keys [install-edn user-edn project-edn]} (deps/find-edn-maps)]
+    (deps/merge-edns [install-edn user-edn project-edn])))
 
 (defn sh
   "Launches a process with optional args, returning exit code.
